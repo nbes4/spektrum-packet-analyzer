@@ -17,7 +17,7 @@ SYSTEM_TO_PROTOCOL = {
     b'\xb2' : DSMX_11MS_2048,
 }
 
-CHANNELS = [
+CHANNEL_NAMES = [
     "Throttle",
     "Aileron",
     "Elevator",
@@ -135,10 +135,10 @@ class SpektrumPacketAnalyzer(HighLevelAnalyzer):
         if proto == DSM2_22MS_1024:
             pos = parsed & 0x03ff
             id = (parsed & 0xfc00) >> 10
-            return AnalyzerFrame('channel_1024', frames[0].start_time, frames[1].end_time, {'chan_name': CHANNELS[id], 'chan_id': id, 'pos': pos})
+            return AnalyzerFrame('channel_1024', frames[0].start_time, frames[1].end_time, {'chan_name': CHANNEL_NAMES[id], 'chan_id': id, 'pos': pos})
         else:
             pos = parsed & 0x07ff
             id = (parsed & 0x7800) >> 11
             pha = (parsed & 0x8000) >> 15
-            return AnalyzerFrame('channel_2048', frames[0].start_time, frames[1].end_time, {'chan_name': CHANNELS[id], 'chan_id': id, 'pos': pos, 'pha': pha })
+            return AnalyzerFrame('channel_2048', frames[0].start_time, frames[1].end_time, {'chan_name': CHANNEL_NAMES[id], 'chan_id': id, 'pos': pos, 'pha': pha })
 
