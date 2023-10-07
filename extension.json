@@ -1,0 +1,13 @@
+{
+  "name": "Spektrum Receiver Packet Analyzer",
+  "apiVersion": "1.0.0",
+  "author": "nbes4",
+  "version": "0.0.1",
+  "description": "Inspect the contents of packets received on a Spektrum (tm) (compatible) receiver via UART. Check out the README for more info.",
+  "extensions": {
+    "Spektrum Remote Receiver": {
+      "type": "HighLevelAnalyzer",
+      "entryPoint": "HighLevelAnalyzer.SpektrumPacketAnalyzer"
+    }
+  }
+}
