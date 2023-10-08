@@ -13,7 +13,7 @@ This analyzer allows you to inspect the contents of packets received by Spektrum
 4. Configure Analyzer settings
 5. PROFIT! Happy analyzing
 
-![Test](doc/add_analyzer.gif)
+![](doc/add_analyzer_cut3.gif)
 
 ## Further Information
 
