@@ -129,16 +129,24 @@ class SpektrumPacketAnalyzer(HighLevelAnalyzer):
         frames2 = [frames[i:i + 2] for i in range(0, len(frames), 2)] # split 'frames' array into size-two chunks 
         return [self.parse_channel(frame2, proto) for frame2 in frames2]
 
+
+    def get_channel_name(self, id:int):
+        if 0<=id< len(CHANNEL_NAMES):
+            return CHANNEL_NAMES[id]
+        else:
+            return "NOT_IDENTIFIED"
+
+
     def parse_channel(self, frames, proto):
         parsed = int.from_bytes(frames[0].data['data'] + frames[1].data['data'], byteorder='big')
         # masks and bit shifts from datasheet
         if proto == DSM2_22MS_1024:
             pos = parsed & 0x03ff
             id = (parsed & 0xfc00) >> 10
-            return AnalyzerFrame('channel_1024', frames[0].start_time, frames[1].end_time, {'chan_name': CHANNEL_NAMES[id], 'chan_id': id, 'pos': pos})
+            return AnalyzerFrame('channel_1024', frames[0].start_time, frames[1].end_time, {'chan_name': self.get_channel_name(id), 'chan_id': id, 'pos': pos})
         else:
             pos = parsed & 0x07ff
             id = (parsed & 0x7800) >> 11
             pha = (parsed & 0x8000) >> 15
-            return AnalyzerFrame('channel_2048', frames[0].start_time, frames[1].end_time, {'chan_name': CHANNEL_NAMES[id], 'chan_id': id, 'pos': pos, 'pha': pha })
+            return AnalyzerFrame('channel_2048', frames[0].start_time, frames[1].end_time, {'chan_name': self.get_channel_name(id), 'chan_id': id, 'pos': pos, 'pha': pha })
 
