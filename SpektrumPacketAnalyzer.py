@@ -134,7 +134,7 @@ class SpektrumPacketAnalyzer(HighLevelAnalyzer):
         if 0 <= id < len(CHANNEL_NAMES):
             return CHANNEL_NAMES[id]
         else:
-            return "NOT_IDENTIFIED"
+            return "Unknown"
 
 
     def parse_channel(self, frames, proto):
