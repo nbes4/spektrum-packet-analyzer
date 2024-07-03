@@ -1,7 +1,7 @@
 # High Level Analyzer
 # For more information and documentation, please go to https://support.saleae.com/extensions/high-level-analyzer-extensions
 
-from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, ChoicesSetting
+from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, ChoicesSetting, StringSetting
 from saleae.data import GraphTimeDelta
 
 
@@ -38,6 +38,9 @@ class SpektrumPacketAnalyzer(HighLevelAnalyzer):
 
     receiver_type_setting = ChoicesSetting(choices=("INTERNAL", "EXTERNAL"))
     protocol_setting = ChoicesSetting(choices=(DSM2_22MS_1024, DSM2_11MS_2048, DSMX_22MS_2048, DSMX_11MS_2048))
+    channel_minmax_file_path = StringSetting()
+
+    channels_min_max = None
 
     last_end_time = None
 
@@ -53,8 +56,14 @@ class SpektrumPacketAnalyzer(HighLevelAnalyzer):
         'channel_1024': {
             'format': '{{data.chan_name}} ({{data.chan_id}}), pos={{data.pos}}'
         },
+        'channel_1024_ext': {
+            'format': '{{data.chan_name}} ({{data.chan_id}}) {{data.percent}}%, pos={{data.pos}}'
+        },
         'channel_2048': {
             'format': '{{data.chan_name}} ({{data.chan_id}}), pos={{data.pos}}, pha={{data.pha}}'
+        },
+        'channel_2048_ext': {
+            'format': '{{data.chan_name}} ({{data.chan_id}}) {{data.percent}}%, pos={{data.pos}}, pha={{data.pha}}'
         },
         'err': {
             'format': "ERROR"
@@ -63,6 +72,42 @@ class SpektrumPacketAnalyzer(HighLevelAnalyzer):
 
     def __init__(self):
         print("Settings:", self.receiver_type_setting, self.protocol_setting)
+        print("Channel minmax file path:", self.channel_minmax_file_path)
+        if self.channel_minmax_file_path != "":
+            self.read_channel_minmax_file()
+
+    def read_channel_minmax_file(self):
+
+        print("Parsing channel minmax file...")
+
+        channels_min_max = {}
+        parse_success = 0
+        try: 
+            with open(self.channel_minmax_file_path, "r") as channel_definitions:
+
+                lines = [line.rstrip() for line in channel_definitions]
+
+                for i, line in enumerate(lines):
+                    try:
+                        split = line.split(",") 
+                        channel_mid = None # declare here 
+
+                        if len(split) == 3: # assume line format is channel_id, channel_min, channel_max
+                            channel_id, channel_min, channel_max = split
+                        else: # assume line format is channel_id, channel_min, channel_max
+                            channel_id, channel_min, channel_mid, channel_max, *ignore = split 
+
+                        channels_min_max[channel_id] = (int(channel_min), int(channel_mid) if channel_mid is not None else None, int(channel_max)) 
+                        parse_success += 1
+                    except:
+                        print(f"Error while reading channel minmax file line {i}")
+        except:
+            print(f"Failed to open file")
+
+        print(channels_min_max, str(0) in channels_min_max, channels_min_max[str(0)])        
+        print(f"Successfully parsed {parse_success} channels!")
+        self.channels_min_max = channels_min_max
+            
 
     def decode(self, frame: AnalyzerFrame):
       
@@ -114,7 +159,7 @@ class SpektrumPacketAnalyzer(HighLevelAnalyzer):
         if self.receiver_type_setting == "INTERNAL":
             fades = int.from_bytes(frames[0].data['data'], byteorder='big')
             proto = SYSTEM_TO_PROTOCOL.get(frames[1].data['data'])
-            match = 'YES' if proto == self.protocol_setting else 'No' # does the parsed protocol match the on provided by the setting?
+            match = 'YES' if proto == self.protocol_setting else 'No' # does the parsed protocol match the one provided by the setting?
             return (proto, [
                 AnalyzerFrame('fades', frames[0].start_time, frames[0].end_time, {'fades': fades}),
                 AnalyzerFrame('system', frames[1].start_time, frames[1].end_time, {'proto': proto, 'match': match })
@@ -143,9 +188,32 @@ class SpektrumPacketAnalyzer(HighLevelAnalyzer):
         if proto == DSM2_22MS_1024:
             pos = parsed & 0x03ff
             channel_id = (parsed & 0xfc00) >> 10
-            return AnalyzerFrame('channel_1024', frames[0].start_time, frames[1].end_time, {'chan_name': self.get_channel_name(channel_id), 'chan_id': channel_id, 'pos': pos})
+            return self.make_channel_frame('channel_1024', frames[0].start_time, frames[1].end_time, channel_id, pos, 0)
         else:
             pos = parsed & 0x07ff
             channel_id = (parsed & 0x7800) >> 11
             pha = (parsed & 0x8000) >> 15
-            return AnalyzerFrame('channel_2048', frames[0].start_time, frames[1].end_time, {'chan_name': self.get_channel_name(channel_id), 'chan_id': channel_id, 'pos': pos, 'pha': pha })
+            return self.make_channel_frame('channel_2048', frames[0].start_time, frames[1].end_time, channel_id, pos, pha)
+        
+    def make_channel_frame(self, channel_frame_type, start_time, end_time, channel_id, pos, pha):
+
+        percent = 0
+        channel_id_str = str(channel_id)
+
+        if channel_id_str in self.channels_min_max:
+            channel_min, channel_mid, channel_max = self.channels_min_max[channel_id_str]
+            if channel_mid is None:
+                percent = self.calc_percent(pos, channel_max, channel_min)
+            else:
+                percent = self.calc_percent(pos, channel_max, channel_min) if pos > channel_mid else self.calc_percent(pos, channel_mid, channel_min)
+
+            # if channel_id was found in the minmax dict, convert frame to extended format (with percent)
+            channel_frame_type += '_ext'
+        
+        return AnalyzerFrame(channel_frame_type, start_time, end_time, {'chan_name': self.get_channel_name(channel_id), 'chan_id': channel_id, 'percent': percent, 'pos': pos, 'pha': pha })
+    
+
+    def calc_percent(self, val, upper, lower):
+        return round((val - lower) / (upper - lower) * 100.0, 2)
+
+
