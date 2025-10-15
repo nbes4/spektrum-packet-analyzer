@@ -1,6 +1,6 @@
-# Spektrum™ Remote Receiver Packet Analyzer
+# Spektrum™ DSMX Receiver Packet Analyzer
 
-This project provides a high-level analyzer for decoding packets received by Spektrum™ Remote Receivers over UART. It is designed to work with the Saleae Logic Analyzer software.
+This project provides a high-level analyzer for decoding packets received by Spektrum™ DSMX Remote Receivers over UART. It is designed to work with the Saleae Logic Analyzer software.
 
 ![Parsed Packet Example](doc/parsed.png)
 
@@ -8,10 +8,9 @@ This project provides a high-level analyzer for decoding packets received by Spe
 
 ## Features
 
-- Decodes Spektrum™ remote receiver packets.
+- Decodes Spektrum™ Remote Receiver packets.
 - Supports multiple protocols: DSM2 and DSMX.
-- Provides detailed information about fades, system type, and channel data.
-- Easy integration with Saleae Logic Analyzer software.
+- Displays fades, system type, and channel data.
 
 ---
 
@@ -23,7 +22,7 @@ Follow these steps to set up and use the analyzer:
    Add this extension to your Saleae Logic Analyzer software.
 
 2. **Connect the Receiver**  
-   Connect the TX pin of your Spektrum™ Receiver to a channel on the Saleae Logic Analyzer.
+   Connect the TX data pin of your Spektrum™ Receiver to a channel on the Saleae Logic Analyzer.
 
 3. **Configure the Async Serial Analyzer**  
    - Attach an Async Serial Analyzer to the channel in the Saleae Logic software.
@@ -34,14 +33,14 @@ Follow these steps to set up and use the analyzer:
      - Stop Bits: `1`
 
 4. **Add the Spektrum™ Remote Receiver Analyzer**  
-   - Use the Async Serial Analyzer as the input for this analyzer.
+   Use the Async Serial Analyzer as the input for this analyzer.
 
 5. **Configure the Analyzer Settings**  
    - Select the receiver type (`INTERNAL` or `EXTERNAL`).
    - Choose the protocol (`DSM2` or `DSMX`).
 
-6. **Analyze Packets**  
-   Start capturing data and inspect the decoded packets.
+6. **_PROFIT! :-)_**  
+   You should now be able to see captured packets
 
 ![Adding the Analyzer](doc/add_analyzer_cut3.gif)
 
@@ -77,7 +76,9 @@ For more details about the Spektrum™ protocol, refer to the [official datashee
 
 ## Contributing
 
-Contributions are welcome! Feel free to submit a pull request to improve the analyzer or its documentation.
+_Contributions are welcome! :-)_
+
+Feel free to submit a pull request to improve the analyzer or its documentation. 
 
 ---
 
