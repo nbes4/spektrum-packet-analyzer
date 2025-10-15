@@ -1,9 +1,9 @@
 {
-  "name": "Spektrum Receiver Packet Analyzer",
+  "name": "Spektrum DSMX Receiver Packet Analyzer",
   "apiVersion": "1.0.0",
   "author": "nbes4",
-  "version": "0.0.2",
-  "description": "Decodes Spektrum (tm) remote receiver packets. Check out the README for more info.",
+  "version": "0.0.3",
+  "description": "Decodes Spektrum DSMX/DSM2 remote receiver packets. Check out the README for more info.",
   "extensions": {
     "Spektrum Remote Receiver": {
       "type": "HighLevelAnalyzer",
